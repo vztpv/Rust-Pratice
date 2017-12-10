@@ -8,7 +8,9 @@ pub struct ItemType<T>
 
 pub trait ItemTypeInterface<T>
 {
-    fn make(name : String, data : T) -> Self;
+    fn Make(name : String, data : T) -> Self;
+    fn GetName(&self) -> &String;
+    fn GetData(&self) -> &T;
 }
 
 
