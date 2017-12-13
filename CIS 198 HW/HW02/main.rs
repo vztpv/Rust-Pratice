@@ -12,7 +12,7 @@ fn main()
     }
 
     test.insert(4);
-
+println!("{:?}", test);
     if test.find(4) {
         println!("finded 4-1");
     }
@@ -25,6 +25,17 @@ fn main()
     if test.find(4) {
         println!("finded 4-2");
     }
+    test.insert(3);
 
+    test.insert(1);
+
+    test.insert(6);
+
+    test.insert(5);
+
+    test.find(-1);
+    test.find(6);
+    
+    println!("{:?}", test);
 }
 

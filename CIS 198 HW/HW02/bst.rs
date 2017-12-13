@@ -1,12 +1,11 @@
 
-
 #[derive(Debug)]
 pub struct BST
 {
     root : Link
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BST_LINK_TYPE
 {
     Empty,
@@ -14,14 +13,14 @@ pub enum BST_LINK_TYPE
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Link
 {
     pub link : BST_LINK_TYPE
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Node
 {
     pub value : i32,
@@ -35,8 +34,8 @@ impl PartialEq for BST_LINK_TYPE
        match (self, other)
        {
            (&BST_LINK_TYPE::Empty, &BST_LINK_TYPE::Empty) => return true,
-           (&BST_LINK_TYPE::Empty, _) => panic!("error eq in BST_LINK_TYPE"),
-           (&BST_LINK_TYPE::More(ref a), &BST_LINK_TYPE::Empty) => panic!("error eq in BST_LINK_TYPE_2"),
+           (&BST_LINK_TYPE::Empty, _) => return false,
+           (&BST_LINK_TYPE::More(ref a), &BST_LINK_TYPE::Empty) => return false,
            (&BST_LINK_TYPE::More(ref a), &BST_LINK_TYPE::More(ref b)) => return a.value == b.value 
        }
     }
@@ -72,124 +71,108 @@ impl Link
     }
 
     pub fn new_from(x : i32) -> Self {
-        let mut temp : Link = Link::new();
-
-        temp.link = BST_LINK_TYPE::More(Box::new(Node::new_from(x)));
-
-        temp
-    }
-
-    pub fn left_child(&self) -> &Self {
-        match &self.link {
-            &BST_LINK_TYPE::Empty => panic!("this is nullptr in Link a"),
-            &BST_LINK_TYPE::More(ref a) => return &a.left
-        }
-    }
-
-    pub fn right_child(&self) -> &Self {
-        match &self.link {
-            &BST_LINK_TYPE::Empty => panic!("this is nullptr in Link b"),
-            &BST_LINK_TYPE::More(ref a) => return &a.right
-        }
-    }
-
-    pub fn insert_left_child(&mut self, x : i32) {
-        match &mut self.link {
-            &mut BST_LINK_TYPE::Empty => panic!("this is nullptr in Link c"),
-            &mut BST_LINK_TYPE::More(ref mut a) => a.left = Link::new_from(x)
-        }
-    }
-
-    pub fn insert_right_child(&mut self, x : i32) {
-        match &mut self.link {
-            &mut BST_LINK_TYPE::Empty => panic!("this is nullptr in Link d"),
-            &mut BST_LINK_TYPE::More(ref mut a) => a.right = Link::new_from(x)
-        }
+        Link{link : BST_LINK_TYPE::More(Box::new(Node::new_from(x)))}
     }
 }
+
+
 
 impl BST
 {
     pub fn new() -> Self {
         BST{root : Link::new()}
     }
-    pub fn search(&mut self, x : i32) -> (&mut Link, Link) {
-        let mut p : &mut Link = &mut self.root;
-        let mut q : Link = Link::new();
 
-        loop {
-            // if p.empty() { break; }
-            // else if p->node.value > x { }
-            // else if p->node.value < x { }
-            // else { return true; }
-            if p.link == BST_LINK_TYPE::Empty {
-                break;
-            }
-
-            let _comp: i32 = p.link.comp(x);
-            if _comp < 0 {
-                let mut right = p.right_child();
-                let mut chk_link : bool = false;
-                match &right.link {
-                    &BST_LINK_TYPE::Empty => { p = &mut right; },
-                    _ => { p = &mut right; q = &mut right; }
+    pub fn search(&self, x : i32) -> bool {
+        let link = &self.root;
+        
+        BST::_search(link, x)
+    }
+    pub fn _search(link : &Link, x :i32) -> bool {
+        match &link.link {
+            &BST_LINK_TYPE::Empty => return false,
+            &BST_LINK_TYPE::More(ref a) => {
+                if x == a.value {
+                    return true;
                 }
-            }
-            else if _comp > 0 {
-                let mut left = p.left_child();
-
-                let mut chk_link : bool = false;
-                match left.link {
-                    BST_LINK_TYPE::Empty => { p = &mut left; },
-                    _ => { p = &mut left; q = &mut left; }
+                else {
+                    return BST::_search(&a.left, x) || BST::_search(&a.right, x);
                 }
-            }   
-            else { // _comp == 0
-                break;
             }
         }
-
-        (p, q)
+        return false;
     }
     pub fn find(&self, x : i32) -> bool {
-        let searched = self.search(x);
-
-        match searched.0.link {
-            BST_LINK_TYPE::Empty => return false,
-            _ => return true
-        }
+        self.search(x)
     }
-    pub fn insert(&self, x :i32) -> bool {
-        let mut valid : bool = false;
-        let mut links : (&mut Link, Link) = self.search(x);
 
-        match links.0.link {
-            BST_LINK_TYPE::Empty => valid = true,
-            _ => valid = false
+    pub fn insert(&mut self, x : i32) -> bool {
+        if self.find(x) {
+            false
         }
+        else {
+            let mut chk : bool = false;
+            {
+                let link : &mut Link = &mut self.root;
 
-        if valid {
-            let mut chk : i32 = 0;
-            match &mut links.1.link {
-                &mut BST_LINK_TYPE::Empty => {
-                    chk = 0;
-                 },
-                &mut BST_LINK_TYPE::More(ref a) => { 
-                    if a.value < x {
-                        chk = 1; //links.1.insert_right_child(x);
-                    }
-                    else {
-                        chk = 2; //links.1.insert_left_child(x);
+                match &mut link.link {
+                    &mut BST_LINK_TYPE::Empty => { 
+                        chk = true;
+                    },
+                    _ => {
+                        BST::_insert(link, x);
                     }
                 }
             }
-            if chk == 1 { links.1.insert_right_child(x); }
-            else if chk == 2 { links.1.insert_left_child(x); }
-            else {
-                // todo
+            if chk {
+                println!("added {}", x);
+                self.root = Link::new_from(x);
+            }
+
+            true
+        }
+    } 
+
+    fn _insert(node : &mut Link, x : i32) {
+        let mut chk : bool = false;
+        {
+            match &mut node.link {
+                &mut BST_LINK_TYPE::Empty => { chk = true; },
+                &mut BST_LINK_TYPE::More(ref mut a) => {
+                    if x < a.value {
+                        match &mut a.left.link {
+                            &mut BST_LINK_TYPE::Empty => { }, // error
+                            &mut BST_LINK_TYPE::More(ref mut b) => {
+                                return BST::_insert(&mut b.left, x);
+                            }
+                        }
+                    }
+                    else if x > a.value {
+                        match &mut a.right.link {
+                            &mut BST_LINK_TYPE::Empty => { }, // error
+                            &mut BST_LINK_TYPE::More(ref mut b) => {
+                                return BST::_insert(&mut b.right, x);
+                            }
+                        }
+                    }
+
+                    if x < a.value {
+                        println!("added {} ", x);
+                        a.left = Link::new_from(x);
+                    }
+                    else if x > a.value {
+                        println!("added {}", x);
+                        a.right = Link::new_from(x);
+                    }
+
+                    return;
+                }
             }
         }
-
-        valid
+        if chk {
+            println!("added {}", x);
+            *node = Link::new_from(x);
+        }
     }
 }
+
