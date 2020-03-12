@@ -1,0 +1,7 @@
+[package]
+name = "FirstTest"
+version = "0.1.0"
+authors = ["DongWook Lee <vztpv@naver.com>"]
+
+[dependencies]
+rand = ""
